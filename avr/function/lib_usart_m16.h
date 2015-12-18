@@ -24,7 +24,7 @@ void M16_USART_SEND_INIT()
 	
 	UCSRA |= (1 << U2X);//*********倍速模式
 	
-	UCSRB |= (1 << TXCIE)|(1 << UDRIE)|(1 << TXEN);//********发送中断 寄存器空中断 发送使能
+	UCSRB |= (1 << TXEN);//********(1 << TXCIE)|(1 << UDRIE)|发送中断 寄存器空中断 发送使能
 	
 	UCSRC |= (1 << URSEL)|(1 << UCSZ1)|(1 << UCSZ0);//*********异步操作 无校验 一位停止位 8位数据 
 	

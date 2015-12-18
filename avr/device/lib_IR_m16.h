@@ -9,6 +9,7 @@
 //----------------------------------------HEADER---------------------------------------//
 
 //***注意芯片的熔丝位设置，新片的熔丝位为内部时钟
+//***注意触发类别是下降沿还是上升沿 否则可能会导致丢失一个脉冲
 
 #ifndef LIB_IR_M16_H_
 #define LIB_IR_M16_H_
@@ -111,6 +112,13 @@ void IR_sender_close()
 #define IR_receiver_OUT PD6
 
 //int FN_IR = 1;//*****分频大小
+void IR_receiver_init(uchar edge);//edge = 1 means up model and = 0 means down edge model
+//设置为上升沿捕获
+void IR_receiver_model_up();
+//设置为下降沿捕获
+void IR_receiver_model_down();
+uchar IR_receiver_model_change(uchar model);//model == 1 is model up and == 0 is model down
+//to use this function it's better to take model = IR_receiver_model_change(model);so that model can get the return value
 
 //-------------------------------------------IMPLEMENTATION-----------------------------//
 
@@ -119,12 +127,20 @@ void IR_sender_close()
  *使用timer1的icr1捕获
  */
 
-void IR_receiver_init()
+void IR_receiver_init(uchar edge)//edge = 1 means up model and = 0 means down edge model
 {
 	IR_receiver_DDR &= ~(1<<IR_receiver_OUT);  IR_sender_PORT |= (1 << IR_sender_OUT);//相应端口设为接收并且置为高电平
 	TIMSK |= (1<<TICIE1);//中断初始化
 	TCCR1B |= (1<<ICNC1)|(1<<CS12);FN_IR = 256;//噪声抑制 下降沿触发 256分频
 	TCNT1 = 0x00;//计数器初始化
+	if (edge == 0)
+	{
+		IR_receiver_model_down();
+	}
+	else
+	{
+		IR_receiver_model_up();
+	}
 }
 //设置为上升沿捕获
 void IR_receiver_model_up()
@@ -137,6 +153,27 @@ void IR_receiver_model_down()
 {
 	TCCR1B &= ~(1<<ICES1);
 	TIFR |= (1<<ICF1);
+}
+
+uchar IR_receiver_model_change(uchar model)//model == 1 is model up and == 0 is model down
+//to use this function it's better to take model = IR_receiver_model_change(model);so that model can get the return value
+{
+	if (model == 0)
+	{
+		
+		
+		IR_receiver_model_up();
+		
+		return 1;
+	}
+	else
+	{
+		
+		IR_receiver_model_down();
+		
+		return 0;
+	}
+	
 }
 
 /*
